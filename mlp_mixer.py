@@ -46,9 +46,9 @@ class MLP1(nn.Module):
         super(MLP1, self).__init__()
         self.ln = nn.LayerNorm(hidden_size)
         self.fc1 = nn.Conv1d(num_patches, hidden_s, kernel_size=1)
-        self.do1 = nn.Dropout(drop_p=p)
+        self.do1 = nn.Dropout(p=drop_p)
         self.fc2 = nn.Conv1d(hidden_s, num_patches, kernel_size=1)
-        self.do2 = nn.Dropout(drop_p=p)
+        self.do2 = nn.Dropout(p=drop_p)
     def forward(self, x):
         out = self.do1(F.gelu(self.fc1(self.ln(x))))
         out = self.do2(self.fc2(out))
@@ -59,9 +59,9 @@ class MLP2(nn.Module):
         super(MLP2, self).__init__()
         self.ln = nn.LayerNorm(hidden_size)
         self.fc1 = nn.Linear(hidden_size, hidden_c)
-        self.do1 = nn.Dropout(drop_p=p)
+        self.do1 = nn.Dropout(p=drop_p)
         self.fc2 = nn.Linear(hidden_c, hidden_size)
-        self.do2 = nn.Dropout(drop_p=p)
+        self.do2 = nn.Dropout(p=drop_p)
     def forward(self, x):
         out = self.do1(F.gelu(self.fc1(self.ln(x))))
         out = self.do2(self.fc2(out))
