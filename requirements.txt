@@ -1,0 +1,6 @@
+torch
+torchvision
+numpy
+wandb
+einops
+torchsummary
