@@ -1,4 +1,4 @@
-torch
+torch==1.10.0
 torchvision
 numpy
 wandb

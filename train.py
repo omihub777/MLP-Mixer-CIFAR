@@ -30,11 +30,10 @@ class Trainer(object):
         loss.backward()
         self.optimizer.step()
 
-        l = loss*img.size(0)
-        a = out.argmax(dim=-1).eq(label).sum(-1)/img.size(0)
+        acc = out.argmax(dim=-1).eq(label).sum(-1)/img.size(0)
         wandb.log({
-            'loss':l,
-            'acc':a
+            'loss':loss,
+            'acc':acc
         }, step=self.num_steps)
 
 
@@ -54,18 +53,11 @@ class Trainer(object):
 
     def fit(self, train_dl, test_dl):
         for epoch in range(1, self.epochs+1):
-            # num_imgs = 0.
-            # self.epoch_loss, self.epoch_corr, self.epoch_acc = 0., 0., 0.
             for batch in train_dl:
                 self._train_one_step(batch)
-                # num_imgs += batch[0].size(0)
-            # self.epoch_loss /= num_imgs
-            # self.epoch_acc = self.epoch_corr / num_imgs
             wandb.log({
                 'epoch': epoch, 
                 'lr': self.scheduler.get_last_lr()
-                # 'loss': self.epoch_loss,
-                # 'acc': self.epoch_acc
                 }, step=self.num_steps
             )
             self.scheduler.step()

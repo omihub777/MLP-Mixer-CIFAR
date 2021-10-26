@@ -1,6 +1,5 @@
-datasets/
+datasets/*
 wandb/
-
 !datasets/.gitadd
 
 # Byte-compiled / optimized / DLL files

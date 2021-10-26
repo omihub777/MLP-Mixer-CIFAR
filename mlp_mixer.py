@@ -6,7 +6,7 @@ import torchsummary
 
 
 class MLPMixer(nn.Module):
-    def __init__(self,in_channels=3,img_size=32, patch_size=4, hidden_size=512, hidden_s=256, hidden_c=2048, num_layers=8, num_classes=10, drop_p=0.):
+    def __init__(self,in_channels=3,img_size=32, patch_size=4, hidden_size=512, hidden_s=256, hidden_c=2048, num_layers=8, num_classes=10, drop_p=0., off_act=False):
         super(MLPMixer, self).__init__()
         num_patches = img_size // patch_size * img_size // patch_size
         # (b, c, h, w) -> (b, d, h//p, w//p) -> (b, h//p*w//p, d)
@@ -14,7 +14,7 @@ class MLPMixer(nn.Module):
             nn.Conv2d(in_channels, hidden_size ,kernel_size=patch_size, stride=patch_size),
             Rearrange('b d h w -> b (h w) d')
         )
-        mixer_layers = [MixerLayer(num_patches, hidden_size, hidden_s, hidden_c) for _ in range(num_layers)]
+        mixer_layers = [MixerLayer(num_patches, hidden_size, hidden_s, hidden_c, drop_p, off_act) for _ in range(num_layers)]
         self.mixer_layers = nn.Sequential(*mixer_layers)
         self.gap = nn.Sequential(
             nn.AdaptiveAvgPool1d(1),
@@ -32,41 +32,54 @@ class MLPMixer(nn.Module):
 
 
 class MixerLayer(nn.Module):
-    def __init__(self, num_patches, hidden_size, hidden_s, hidden_c, drop_p=0.):
+    def __init__(self, num_patches, hidden_size, hidden_s, hidden_c, drop_p, off_act):
         super(MixerLayer, self).__init__()
-        self.mlp1 = MLP1(num_patches, hidden_s, hidden_size, drop_p)
-        self.mlp2 = MLP2(hidden_size, hidden_c, drop_p)
+        self.mlp1 = MLP1(num_patches, hidden_s, hidden_size, drop_p, off_act)
+        self.mlp2 = MLP2(hidden_size, hidden_c, drop_p, off_act)
     def forward(self, x):
         out = self.mlp1(x)
         out = self.mlp2(out)
         return out
 
 class MLP1(nn.Module):
-    def __init__(self, num_patches, hidden_s, hidden_size, drop_p=0.):
+    def __init__(self, num_patches, hidden_s, hidden_size, drop_p, off_act):
         super(MLP1, self).__init__()
         self.ln = nn.LayerNorm(hidden_size)
         self.fc1 = nn.Conv1d(num_patches, hidden_s, kernel_size=1)
         self.do1 = nn.Dropout(p=drop_p)
         self.fc2 = nn.Conv1d(hidden_s, num_patches, kernel_size=1)
         self.do2 = nn.Dropout(p=drop_p)
+        self.act = F.gelu if not off_act else lambda x:x
     def forward(self, x):
-        out = self.do1(F.gelu(self.fc1(self.ln(x))))
+        out = self.do1(self.act(self.fc1(self.ln(x))))
         out = self.do2(self.fc2(out))
         return out+x
 
 class MLP2(nn.Module):
-    def __init__(self, hidden_size, hidden_c, drop_p=0.):
+    def __init__(self, hidden_size, hidden_c, drop_p, off_act):
         super(MLP2, self).__init__()
         self.ln = nn.LayerNorm(hidden_size)
         self.fc1 = nn.Linear(hidden_size, hidden_c)
         self.do1 = nn.Dropout(p=drop_p)
         self.fc2 = nn.Linear(hidden_c, hidden_size)
         self.do2 = nn.Dropout(p=drop_p)
+        self.act = F.gelu if not off_act else lambda x:x
     def forward(self, x):
-        out = self.do1(F.gelu(self.fc1(self.ln(x))))
+        out = self.do1(self.act(self.fc1(self.ln(x))))
         out = self.do2(self.fc2(out))
         return out+x
 
 if __name__ == '__main__':
-    net = MLPMixer()
+    net = MLPMixer(
+        in_channels=3,
+        img_size=32, 
+        patch_size=4, 
+        hidden_size=128, 
+        hidden_s=512, 
+        hidden_c=64, 
+        num_layers=8, 
+        num_classes=10, 
+        drop_p=0.,
+        off_act=False
+        )
     torchsummary.summary(net, (3,32,32))
