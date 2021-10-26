@@ -12,7 +12,8 @@ class Trainer(object):
         self.device = args.device
         self.clip_grad = args.clip_grad
         self.model = model
-        self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
+        # self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr, betas=(args.beta1, args.beta2), weight_decay=args.weight_decay)
         self.base_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=args.epochs, eta_min=args.min_lr)
         self.scheduler = warmup_scheduler.GradualWarmupScheduler(self.optimizer, multiplier=1., total_epoch=args.warmup_epoch, after_scheduler=self.base_scheduler)
         # self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[args.epochs//2, 3*args.epochs//4], gamma=args.gamma)
@@ -66,7 +67,8 @@ class Trainer(object):
                 self._train_one_step(batch)
             wandb.log({
                 'epoch': epoch, 
-                'lr': self.scheduler.get_last_lr()
+                # 'lr': self.scheduler.get_last_lr(),
+                'lr':self.optimizer.param_groups[0]["lr"]
                 }, step=self.num_steps
             )
             self.scheduler.step()
