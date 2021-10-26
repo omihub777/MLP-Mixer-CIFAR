@@ -38,7 +38,7 @@ torch.random.manual_seed(args.seed)
 
 
 if __name__=='__main__':
-    with wandb.init(project='mlp_mixer', config=args, name=experiment_name):
+    with wandb.init(project='mlp_mixer', config=args):
         train_dl, test_dl = get_dataloaders(args)
         model = get_model(args)
         trainer = Trainer(model, args)
