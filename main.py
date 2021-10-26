@@ -36,16 +36,24 @@ parser.add_argument('--gamma', type=float, default=0.1)
 parser.add_argument('--min-lr', type=float, default=1e-5)
 parser.add_argument('--warmup-epoch', type=int, default=5)
 parser.add_argument('--autoaugment', action='store_true')
-parser.add_argument('--clip-grad', type=float, default=1)
+parser.add_argument('--clip-grad', type=float, default=0)
 
 args = parser.parse_args()
 args.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 args.nesterov = not args.off_nesterov
 torch.random.manual_seed(args.seed)
 
+experiment_name = f"{args.model}_{args.dataset}"
+if args.autoaugment:
+    experiment_name += "_aa"
+if args.clip_grad:
+    experiment_name += f"_cg{args.clip_grad}"
+
+
+
 
 if __name__=='__main__':
-    with wandb.init(project='mlp_mixer', config=args):
+    with wandb.init(project='mlp_mixer', config=args, name=experiment_name):
         train_dl, test_dl = get_dataloaders(args)
         model = get_model(args)
         trainer = Trainer(model, args)
