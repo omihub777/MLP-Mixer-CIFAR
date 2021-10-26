@@ -15,7 +15,6 @@ parser.add_argument('--batch-size', type=int, default=128)
 parser.add_argument('--eval-batch-size', type=int, default=1024)
 parser.add_argument('--num-workers', type=int, default=4)
 parser.add_argument('--seed', type=int, default=3407)
-torch.random.manual_seed(args.seed)
 
 parser.add_argument('--patch-size', type=int, default=4)
 parser.add_argument('--hidden-size', type=int, default=128)
@@ -35,6 +34,7 @@ parser.add_argument('--gamma', type=float, default=0.1)
 args = parser.parse_args()
 args.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 args.nesterov = not args.off_nesterov
+torch.random.manual_seed(args.seed)
 
 
 if __name__=='__main__':
