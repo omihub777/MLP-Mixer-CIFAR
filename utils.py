@@ -11,7 +11,8 @@ def get_model(args):
             hidden_s = args.hidden_s,
             num_layers = args.num_layers,
             num_classes=args.num_classes,
-            drop_p=args.drop_p
+            drop_p=args.drop_p,
+            off_act=args.off_act
         )
     else:
         raise ValueError(f"No such model: {args.model}")

@@ -22,7 +22,7 @@ parser.add_argument('--hidden-c', type=int, default=512)
 parser.add_argument('--hidden-s', type=int, default=64)
 parser.add_argument('--num-layers', type=int, default=8)
 parser.add_argument('--drop-p', type=int, default=0.)
-parser.add_argument('--off-act', action='store_true')
+parser.add_argument('--off-act', action='store_true', help='Disable activation function')
 
 parser.add_argument('--lr', type=float, default=0.1)
 parser.add_argument('--momentum', type=float, default=0.9)
