@@ -1,5 +1,5 @@
 # MLP-Mixer-CIFAR
-(Ongoing) Unofficial PyTorch implementation of MLP-Mixer modified to get over 90% acc. in CIFAR-10.
+(Ongoing) Unofficial PyTorch implementation of MLP-Mixer modified to get over 90% accucacy in CIFAR-10. 
 
 ## Prerequisite
 * Python 3.9.6
@@ -9,9 +9,9 @@
 
 ## Quick Start
 ```shell
-$ pip install -r requirements.txt
-$ python main.py --model mlp_mixer --dataset c10
+$git clone https://github.com/omihub777/MLP-Mixer-CIFAR.git
+$cd MLP-Mixer-CIFAR
+$python main.py --model mlp_mixer --dataset c10
 ```
 
 ## Result
-Coming soon...

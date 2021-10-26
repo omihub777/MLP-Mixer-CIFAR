@@ -3,14 +3,19 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import wandb
+import warmup_scheduler
+
 
 class Trainer(object):
     def __init__(self, model, args):
         wandb.config.update(args)
         self.device = args.device
+        self.clip_grad = args.clip_grad
         self.model = model
         self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
-        self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[args.epochs//2, 3*args.epochs//4], gamma=args.gamma)
+        self.base_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=args.epochs, eta_min=args.min_lr)
+        self.scheduler = warmup_scheduler.GradualWarmupScheduler(self.optimizer, multiplier=1., total_epoch=args.warmup_epoch, after_scheduler=self.base_scheduler)
+        # self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[args.epochs//2, 3*args.epochs//4], gamma=args.gamma)
         self.scaler = torch.cuda.amp.GradScaler()
 
         self.epochs = args.epochs
@@ -30,6 +35,7 @@ class Trainer(object):
             out = self.model(img)
             loss = self.criterion(out, label)
         self.scaler.scale(loss).backward()
+        nn.utils.clip_grad_norm_(self.model.parameters(), self.clip_grad)
         self.scaler.step(self.optimizer)
         self.scaler.update()
 

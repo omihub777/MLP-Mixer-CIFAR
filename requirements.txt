@@ -4,3 +4,4 @@ numpy
 wandb
 einops
 torchsummary
+scipy

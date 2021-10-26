@@ -1,6 +1,11 @@
+import sys
+sys.path.append('./AutoAugment/')
+
 import torch
 import torchvision
 import torchvision.transforms as transforms
+from AutoAugment.autoaugment import CIFAR10Policy, SVHNPolicy
+
 
 def get_dataloaders(args):
     train_transform, test_transform = get_transform(args)
@@ -42,16 +47,28 @@ def get_transform(args):
         args.padding=28
         args.size = 224
         args.mean, args.std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+    train_transform_list = [transforms.RandomCrop(size=(args.size,args.size), padding=args.padding)]
+    if args.dataset!="svhn":
+        train_transform_list.append(transforms.RandomCrop(size=(args.size,args.size), padding=args.padding))
 
-    train_transform = transforms.Compose([
-        transforms.RandomHorizontalFlip() if args.dataset!='svhn' else transforms.Lambda(lambda x:x),
-        transforms.RandomCrop(size=(args.size,args.size), padding=args.padding),
-        transforms.ToTensor(),
-        transforms.Normalize(
-            mean=args.mean,
-            std = args.std
-        )
-    ])
+    if args.autoaugment:
+        if args.dataset == 'c10' or args.dataset=='c100':
+            train_transform_list.append(CIFAR10Policy())
+        elif args.dataset == 'svhn':
+            train_transform_list.append(SVHNPolicy())
+        else:
+            print(f"No AutoAugment for {args.dataset}")   
+        
+
+    train_transform = transforms.Compose(
+        train_transform_list+[
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=args.mean,
+                std = args.std
+            )
+        ]
+    )
     test_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(
