@@ -44,12 +44,11 @@ args.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 args.nesterov = not args.off_nesterov
 torch.random.manual_seed(args.seed)
 
-experiment_name = f"{args.model}_{args.dataset}"
+experiment_name = f"{args.model}_{args.dataset}_{args.optimizer}"
 if args.autoaugment:
     experiment_name += "_aa"
 if args.clip_grad:
     experiment_name += f"_cg{args.clip_grad}"
-
 
 
 
