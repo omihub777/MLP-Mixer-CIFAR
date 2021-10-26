@@ -27,6 +27,7 @@ parser.add_argument('--off-act', action='store_true', help='Disable activation f
 
 parser.add_argument('--lr', type=float, default=1e-3)
 parser.add_argument('--momentum', type=float, default=0.9)
+parser.add_argument('--optimizer', default='adam', help='[adam, sgd]')
 parser.add_argument('--beta1', type=float, default=0.9)
 parser.add_argument('--beta2', type=float, default=0.99)
 parser.add_argument('--weight-decay', type=float, default=5e-5)
