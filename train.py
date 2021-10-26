@@ -11,6 +11,7 @@ class Trainer(object):
         self.model = model
         self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
         self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[args.epochs//2, 3*args.epochs//4], gamma=args.gamma)
+        self.scaler = torch.cuda.amp.GradScaler()
 
         self.epochs = args.epochs
         self.criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
@@ -25,10 +26,12 @@ class Trainer(object):
         img, label = img.to(self.device), label.to(self.device)
 
         self.optimizer.zero_grad()
-        out = self.model(img)
-        loss = self.criterion(out, label)
-        loss.backward()
-        self.optimizer.step()
+        with torch.cuda.amp.autocast():
+            out = self.model(img)
+            loss = self.criterion(out, label)
+        self.scaler.scale(loss).backward()
+        self.scaler.step(self.optimizer)
+        self.scaler.update()
 
         acc = out.argmax(dim=-1).eq(label).sum(-1)/img.size(0)
         wandb.log({
