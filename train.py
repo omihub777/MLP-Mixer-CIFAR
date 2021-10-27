@@ -27,7 +27,10 @@ class Trainer(object):
             raise ValueError(f"No such scheduler: {self.scheduler}")
 
 
-        self.scheduler = warmup_scheduler.GradualWarmupScheduler(self.optimizer, multiplier=1., total_epoch=args.warmup_epoch, after_scheduler=self.base_scheduler)
+        if args.warmup_epoch:
+            self.scheduler = warmup_scheduler.GradualWarmupScheduler(self.optimizer, multiplier=1., total_epoch=args.warmup_epoch, after_scheduler=self.base_scheduler)
+        else:
+            self.scheduler = self.base_scheduler
         self.scaler = torch.cuda.amp.GradScaler()
 
         self.epochs = args.epochs
@@ -47,7 +50,8 @@ class Trainer(object):
             out = self.model(img)
             loss = self.criterion(out, label)
         self.scaler.scale(loss).backward()
-        nn.utils.clip_grad_norm_(self.model.parameters(), self.clip_grad)
+        if self.clip_grad:
+            nn.utils.clip_grad_norm_(self.model.parameters(), self.clip_grad)
         self.scaler.step(self.optimizer)
         self.scaler.update()
 
