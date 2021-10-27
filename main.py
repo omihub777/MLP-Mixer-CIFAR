@@ -28,6 +28,7 @@ parser.add_argument('--off-act', action='store_true', help='Disable activation f
 parser.add_argument('--lr', type=float, default=1e-3)
 parser.add_argument('--momentum', type=float, default=0.9)
 parser.add_argument('--optimizer', default='adam', help='[adam, sgd]')
+parser.add_argument('--scheduler', default='cosine', help='[step, cosine]')
 parser.add_argument('--beta1', type=float, default=0.9)
 parser.add_argument('--beta2', type=float, default=0.99)
 parser.add_argument('--weight-decay', type=float, default=5e-5)
@@ -44,11 +45,13 @@ args.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 args.nesterov = not args.off_nesterov
 torch.random.manual_seed(args.seed)
 
-experiment_name = f"{args.model}_{args.dataset}_{args.optimizer}"
+experiment_name = f"{args.model}_{args.dataset}_{args.optimizer}_{args.scheduler}"
 if args.autoaugment:
     experiment_name += "_aa"
 if args.clip_grad:
     experiment_name += f"_cg{args.clip_grad}"
+if args.off_act:
+    experiment_name += f"_noact"
 
 
 
