@@ -2,6 +2,7 @@ datasets/*
 wandb/
 !datasets/.gitadd
 AutoAugment/
+sam.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
