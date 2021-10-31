@@ -9,8 +9,8 @@ from utils import get_model
 from train import Trainer
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', required=True, help='[c10, c100, svhn]')
-parser.add_argument('--model', required=True, help='[mlp_mixer, ]')
+parser.add_argument('--dataset', required=True, choices=['c10', 'c100', 'svhn'])
+parser.add_argument('--model', required=True, help=['mlp_mixer'])
 parser.add_argument('--batch-size', type=int, default=128)
 parser.add_argument('--eval-batch-size', type=int, default=1024)
 parser.add_argument('--num-workers', type=int, default=4)
@@ -28,8 +28,8 @@ parser.add_argument('--off-act', action='store_true', help='Disable activation f
 parser.add_argument('--lr', type=float, default=1e-3)
 parser.add_argument('--min-lr', type=float, default=1e-5)
 parser.add_argument('--momentum', type=float, default=0.9)
-parser.add_argument('--optimizer', default='adam', help='[adam, sgd]')
-parser.add_argument('--scheduler', default='cosine', help='[step, cosine]')
+parser.add_argument('--optimizer', default='adam', choices=['adam', 'sgd'])
+parser.add_argument('--scheduler', default='cosine', help=['step', 'cosine'])
 parser.add_argument('--beta1', type=float, default=0.9)
 parser.add_argument('--beta2', type=float, default=0.99)
 parser.add_argument('--weight-decay', type=float, default=5e-5)
@@ -39,6 +39,7 @@ parser.add_argument('--gamma', type=float, default=0.1)
 parser.add_argument('--warmup-epoch', type=int, default=5)
 parser.add_argument('--autoaugment', action='store_true')
 parser.add_argument('--clip-grad', type=float, default=0, help="0 means disabling clip-grad")
+parser.add_argument('--sam', action='store_true')
 
 args = parser.parse_args()
 args.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -52,6 +53,8 @@ if args.clip_grad:
     experiment_name += f"_cg{args.clip_grad}"
 if args.off_act:
     experiment_name += f"_noact"
+if args.sam:
+    experiment_name += f"_sam"
 
 
 

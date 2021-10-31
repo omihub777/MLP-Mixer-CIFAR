@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import wandb
 import warmup_scheduler
+from sam import SAM
 
 
 class Trainer(object):
@@ -12,12 +13,20 @@ class Trainer(object):
         self.device = args.device
         self.clip_grad = args.clip_grad
         self.model = model
-        if args.optimizer=='sgd':
-            self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
-        elif args.optimizer=='adam':
-            self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr, betas=(args.beta1, args.beta2), weight_decay=args.weight_decay)
+        self.sam = args.sam
+        if self.sam:
+            if args.optimizer=='sgd':
+                self.base_optimizer = optim.SGD
+                self.optimizer = SAM(self.model.parameters(), self.base_optimizer, lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
+            elif args.optimizer=='adam':
+                self.base_optimizer = optim.Adam
+                self.optimizer = SAM(self.model.parameters(), self.base_optimizer, lr=args.lr, betas=(args.beta1, args.beta2), weight_decay=args.weight_decay)
         else:
-            raise ValueError(f"No such optimizer: {self.optimizer}")
+            if args.optimizer=='sgd':
+                self.optimizer = optim.SGD(self.model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
+            elif args.optimizer=='adam':
+                self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr, betas=(args.beta1, args.beta2), weight_decay=args.weight_decay)
+
 
         if args.scheduler=='step':
             self.base_scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[args.epochs//2, 3*args.epochs//4], gamma=args.gamma)
@@ -31,7 +40,6 @@ class Trainer(object):
             self.scheduler = warmup_scheduler.GradualWarmupScheduler(self.optimizer, multiplier=1., total_epoch=args.warmup_epoch, after_scheduler=self.base_scheduler)
         else:
             self.scheduler = self.base_scheduler
-        self.scaler = torch.cuda.amp.GradScaler()
 
         self.epochs = args.epochs
         self.criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
@@ -46,14 +54,17 @@ class Trainer(object):
         img, label = img.to(self.device), label.to(self.device)
 
         self.optimizer.zero_grad()
-        with torch.cuda.amp.autocast():
-            out = self.model(img)
-            loss = self.criterion(out, label)
-        self.scaler.scale(loss).backward()
+        out = self.model(img)
+        loss = self.criterion(out, label)
+        loss.backward()
         if self.clip_grad:
             nn.utils.clip_grad_norm_(self.model.parameters(), self.clip_grad)
-        self.scaler.step(self.optimizer)
-        self.scaler.update()
+        if self.sam:
+            self.optimizer.first_step(zero_grad=True)
+            self.criterion(self.model(img), label).backward()
+            self.optimizer.second_step(zero_grad=True)
+        else:
+            self.optimizer.step()
 
         acc = out.argmax(dim=-1).eq(label).sum(-1)/img.size(0)
         wandb.log({
@@ -62,7 +73,6 @@ class Trainer(object):
         }, step=self.num_steps)
 
 
-    # @torch.no_grad
     def _test_one_step(self, batch):
         self.model.eval()
         img, label = batch
@@ -82,7 +92,6 @@ class Trainer(object):
                 self._train_one_step(batch)
             wandb.log({
                 'epoch': epoch, 
-                # 'lr': self.scheduler.get_last_lr(),
                 'lr':self.optimizer.param_groups[0]["lr"]
                 }, step=self.num_steps
             )
