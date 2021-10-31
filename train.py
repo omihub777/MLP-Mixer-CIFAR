@@ -63,6 +63,7 @@ class Trainer(object):
             self.optimizer.first_step(zero_grad=True)
             self.criterion(self.model(img), label).backward()
             self.optimizer.second_step(zero_grad=True)
+            self.num_steps += 1
         else:
             self.optimizer.step()
 
