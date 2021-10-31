@@ -13,17 +13,14 @@ def get_dataloaders(args):
     if args.dataset == "c10":
         train_ds = torchvision.datasets.CIFAR10('./datasets', train=True, transform=train_transform, download=True)
         test_ds = torchvision.datasets.CIFAR10('./datasets', train=False, transform=test_transform, download=True)
-        args.epochs = 200
         args.num_classes = 10
     elif args.dataset == "c100":
         train_ds = torchvision.datasets.CIFAR100('./datasets', train=True, transform=train_transform, download=True)
         test_ds = torchvision.datasets.CIFAR100('./datasets', train=False, transform=test_transform, download=True)
-        args.epochs = 200
         args.num_classes = 100
     elif args.dataset == "svhn":
         train_ds = torchvision.datasets.SVHN('./datasets', split='train', transform=train_transform, download=True)
         test_ds = torchvision.datasets.SVHN('./datasets', split='test', transform=test_transform, download=True)
-        args.epochs = 300
         args.num_classes = 10
     else:
         raise ValueError(f"No such dataset:{args.dataset}")
