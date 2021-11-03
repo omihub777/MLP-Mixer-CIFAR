@@ -6,27 +6,31 @@ import torchsummary
 
 
 class MLPMixer(nn.Module):
-    def __init__(self,in_channels=3,img_size=32, patch_size=4, hidden_size=512, hidden_s=256, hidden_c=2048, num_layers=8, num_classes=10, drop_p=0., off_act=False):
+    def __init__(self,in_channels=3,img_size=32, patch_size=4, hidden_size=512, hidden_s=256, hidden_c=2048, num_layers=8, num_classes=10, drop_p=0., off_act=False, cls_token=False):
         super(MLPMixer, self).__init__()
         num_patches = img_size // patch_size * img_size // patch_size
         # (b, c, h, w) -> (b, d, h//p, w//p) -> (b, h//p*w//p, d)
+        # if cls_token:
+        #     self.cls_token = nn.Parameter(torch.randn)
+
         self.patch_emb = nn.Sequential(
             nn.Conv2d(in_channels, hidden_size ,kernel_size=patch_size, stride=patch_size),
             Rearrange('b d h w -> b (h w) d')
         )
-        mixer_layers = [MixerLayer(num_patches, hidden_size, hidden_s, hidden_c, drop_p, off_act) for _ in range(num_layers)]
-        self.mixer_layers = nn.Sequential(*mixer_layers)
-        self.gap = nn.Sequential(
-            nn.AdaptiveAvgPool1d(1),
-            nn.Flatten()
+        self.mixer_layers = nn.Sequential(
+            *[
+                MixerLayer(num_patches, hidden_size, hidden_s, hidden_c, drop_p, off_act) 
+            for _ in range(num_layers)
+            ]
         )
-        self.clf = nn.Linear(num_patches, num_classes)
+        self.ln = nn.LayerNorm(hidden_size)
+        self.clf = nn.Linear(hidden_size, num_classes)
 
 
     def forward(self, x):
         out = self.patch_emb(x)
         out = self.mixer_layers(out)
-        out = self.gap(out)
+        out = self.ln(out).mean(dim=1)
         out = self.clf(out)
         return out
 

@@ -25,6 +25,7 @@ parser.add_argument('--hidden-s', type=int, default=64)
 parser.add_argument('--num-layers', type=int, default=8)
 parser.add_argument('--drop-p', type=int, default=0.)
 parser.add_argument('--off-act', action='store_true', help='Disable activation function')
+parser.add_argument('--cls-token', action='store_true', help='Introduce a class token.')
 
 parser.add_argument('--lr', type=float, default=1e-3)
 parser.add_argument('--min-lr', type=float, default=1e-6)
