@@ -15,7 +15,7 @@ def get_model(args):
             num_classes=args.num_classes,
             drop_p=args.drop_p,
             off_act=args.off_act,
-            cls_token=args.cls_token
+            is_cls_token=args.is_cls_token
         )
     else:
         raise ValueError(f"No such model: {args.model}")
