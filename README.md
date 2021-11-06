@@ -11,7 +11,7 @@ PyTorch implementation of **Mixer-nano** (#parameters is **0.67M**, originally M
 $git clone https://github.com/omihub777/MLP-Mixer-CIFAR.git
 $cd MLP-Mixer-CIFAR
 $bash setup.sh
-$python main.py --model mlp_mixer --dataset c10
+$main.py --dataset c10 --model mlp_mixer --autoaugment --cutmix-prob 0.5
 ```
 
 ## 3.Result
@@ -40,5 +40,29 @@ $python main.py --model mlp_mixer --dataset c10
 ![Validation Acc. on SVHN](imgs/SVHN_acc.png)
 
 
-## 4. Resources
+## 4. Experiment Settings
+
+|Param|Value|
+|:--|:--:|
+|Adam beta1|0.9|
+|Adam beta2|0.99|
+|AutoAugment|True|
+|Batch Size|128|
+|CutMix prob.|0.5|
+|CutMix beta|1.0|
+|Dropout|0.0|
+|Epoch|300|
+|Hidden_C|512|
+|Hidden_S|64|
+|Hidden|128|
+|(Init LR, Last LR)|(1e-3, 1e-6)|
+|Label Smoothing|0.1|
+|Layers|8|
+|LR Scheduler|Cosine|
+|Optimizer|Adam|
+|Random Seed|3407|
+|Weight Decay|5e-5|
+|Warmup|5 epochs|
+
+## 5. Resources
 * [MLP-Mixer: An all-MLP Architecture for Vision, Tolstikhin, I., (2021)](https://arxiv.org/abs/2105.01601)

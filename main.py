@@ -15,7 +15,7 @@ parser.add_argument('--batch-size', type=int, default=128)
 parser.add_argument('--eval-batch-size', type=int, default=1024)
 parser.add_argument('--num-workers', type=int, default=4)
 parser.add_argument('--seed', type=int, default=3407)
-parser.add_argument('--epochs', type=int, default=200)
+parser.add_argument('--epochs', type=int, default=300)
 # parser.add_argument('--precision', type=int, default=16)
 
 parser.add_argument('--patch-size', type=int, default=4)
